@@ -1,0 +1,32 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Register
+    link(rel="stylesheet" href="/css/register.css")
+  body
+    .container
+      h1 Register
+      form(action="/register" method="POST" onsubmit="submitForm(); return false;")
+        label(for="username") Username:
+        input#username(type="text" name="username" autocomplete="username" required)
+        label(for="email") Email:
+        input#email(type="email" name="email" autocomplete="email" required)
+        label(for="password") Password:
+        input#password(type="password" name="password" autocomplete="new-password" required oninput="validatePassword()")
+        label(for="confirmPassword") Confirm Password:
+        input#confirmPassword(type="password" name="confirmPassword" autocomplete="new-password" required)
+        button(type="submit") Register
+      p Already have an account? 
+        a(href="/login") Login
+
+    #validationModal(style="display:none;")
+      .modal-content
+        span(class="close" onclick="closeModal()") ×
+        ul#validationErrors
+
+    #errorMessage(style="display:none; color:red;")
+    #successMessage(style="display:none; color:green;")
+
+    script(src="/js/registerVal.js")

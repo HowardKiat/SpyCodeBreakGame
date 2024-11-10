@@ -1,0 +1,88 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Home Page
+    link(rel="stylesheet", href="/css/home.css")
+  body
+    .container
+      .hero
+        img(src="/images/spy_codebreakLogo.png" alt="Spy Theme")
+        .hero-text
+          h1 Welcome to the Spy CodeBreak!
+          p Please log in or register to access the full web application.
+      .buttons
+        a(href="/login" class="btn") Login
+        a(href="/register" class="btn") Register
+
+      .audio-player
+      audio#background-audio(loop preload="auto")
+          source(src="/audio/Absurd.mp3" type="audio/mpeg")
+          source(src="/audio/Absurd.ogg" type="audio/ogg")
+          | Your browser does not support the audio element.
+      
+      button#play-button.btn Play
+      button#mute-button.btn Mute
+
+    script.
+      document.addEventListener('DOMContentLoaded', function() {
+        var audio = document.getElementById('background-audio');
+        var muteButton = document.getElementById('mute-button');
+        var playButton = document.getElementById('play-button');
+
+        // Initialize buttons state
+        muteButton.textContent = 'Mute';
+        playButton.textContent = 'Play';
+
+        // Mute/unmute functionality
+        muteButton.addEventListener('click', function() {
+          if (audio.muted) {
+            audio.muted = false;
+            muteButton.textContent = 'Mute';
+          } else {
+            audio.muted = true;
+            muteButton.textContent = 'Unmute';
+          }
+        });
+
+        // Play/pause functionality
+        playButton.addEventListener('click', function() {
+          if (audio.paused) {
+            audio.play().catch(function(error) {
+              console.error('Error trying to play the audio:', error);
+            });
+            playButton.textContent = 'Pause'; // Update button text to 'Pause' once playing
+          } else {
+            audio.pause();
+            playButton.textContent = 'Play'; // Update button text back to 'Play' when paused
+          }
+        });
+
+        // Error handling if audio fails to load
+        audio.addEventListener('error', function(e) {
+          console.error('Error loading audio file:', e);
+          alert('Error loading audio file. Please check the console for more details.');
+        });
+
+        // Debugging: Log audio element state
+        console.log('Audio element:', audio);
+
+        // Debugging: Log audio events
+        audio.addEventListener('play', function() {
+          console.log('Audio is playing');
+        });
+
+        audio.addEventListener('pause', function() {
+          console.log('Audio is paused');
+        });
+
+        audio.addEventListener('ended', function() {
+          console.log('Audio has ended');
+        });
+
+        // Additional debugging: Log time updates
+        audio.addEventListener('timeupdate', function() {
+          console.log('Current time: ' + audio.currentTime);
+        });
+      });

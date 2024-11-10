@@ -1,0 +1,235 @@
+/* Reset some default styles */
+* {
+    box-sizing: border-box;
+    /* Ensures padding and borders are included in element's total width and height */
+}
+
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #1C1C1C;
+    /* Dark background for a spy theme */
+    color: #EAEAEA;
+    /* Light text for contrast */
+}
+
+/* Container Styles */
+.container {
+    display: flex;
+    flex-direction: column;
+    /* Stacks children vertically */
+    align-items: center;
+    /* Horizontally centers children */
+    justify-content: center;
+    /* Vertically centers children */
+    height: 100vh;
+    /* Full viewport height */
+    padding: 20px;
+}
+
+/* Title Styles */
+h1 {
+    font-size: 2.5em;
+    /* Larger font for the title */
+    margin-bottom: 20px;
+    /* Space below the title */
+}
+
+/* Form Styles */
+form {
+    background-color: #333;
+    /* Dark background for the form */
+    border-radius: 10px;
+    /* Rounded corners */
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    /* Adds depth with shadow */
+    width: 100%;
+    max-width: 400px;
+    /* Max width for the form */
+}
+
+/* Label Styles */
+label {
+    display: block;
+    /* Makes labels block elements */
+    margin: 15px 0 5px;
+    /* Space above and below labels */
+}
+
+/* Input Styles */
+input {
+    width: 100%;
+    /* Full width */
+    padding: 10px;
+    /* Padding inside inputs */
+    border: 1px solid #444;
+    /* Dark border */
+    border-radius: 5px;
+    /* Rounded corners */
+    background-color: #222;
+    /* Dark background for inputs */
+    color: #EAEAEA;
+    /* Light text */
+    font-size: 1em;
+    /* Font size */
+}
+
+/* Input Focus Styles */
+input:focus {
+    outline: none;
+    /* Remove default outline */
+    border-color: #FFD700;
+    /* Gold border on focus */
+    background-color: #333;
+    /* Slightly lighter background on focus */
+}
+
+/* Button Styles */
+button {
+    background-color: #FFD700;
+    /* Gold background for buttons */
+    color: #1C1C1C;
+    /* Dark text */
+    border: none;
+    /* No border */
+    border-radius: 5px;
+    /* Rounded corners */
+    padding: 10px 20px;
+    /* Padding for buttons */
+    font-size: 1.1em;
+    /* Font size for buttons */
+    cursor: pointer;
+    /* Pointer cursor */
+    transition: background-color 0.3s, transform 0.3s;
+    /* Smooth transitions */
+    margin-top: 20px;
+    /* Space above the button */
+}
+
+button:hover {
+    background-color: #FFC300;
+    /* Lighter gold on hover */
+    transform: scale(1.05);
+    /* Slightly enlarges button on hover */
+}
+
+/* Link Styles */
+a {
+    color: #FFD700;
+    /* Gold color for links */
+    text-decoration: none;
+    /* Remove underline */
+    display: block;
+    /* Links take full width */
+    margin-top: 15px;
+    /* Space above links */
+    text-align: center;
+    /* Center align links */
+}
+
+a:hover {
+    text-decoration: underline;
+    /* Underline on hover */
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2em;
+        /* Adjust title size for smaller screens */
+    }
+
+    form {
+        padding: 15px;
+        /* Adjust padding for smaller screens */
+    }
+
+    button {
+        padding: 10px;
+        /* Adjust button padding */
+    }
+}
+
+/* Alert Styles */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    display: block;
+    /* Ensure alerts are displayed */
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    /* Stay in place */
+    z-index: 1;
+    /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    /* Full width */
+    height: 100%;
+    /* Full height */
+    overflow: auto;
+    /* Enable scroll if needed */
+    background-color: rgb(0, 0, 0);
+    /* Fallback color */
+    background-color: rgba(0, 0, 0, 0.4);
+    /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    /* Could be more or less, depending on screen size */
+    max-width: 500px;
+    border-radius: 10px;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+}
+
+.modal-content ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.modal-content ul li {
+    margin-bottom: 10px;
+}
+
+.modal-content button {
+    background-color: #FFD700;
+    color: #1C1C1C;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+    margin-top: 20px;
+}
+
+.modal-content button:hover {
+    background-color: #FFC300;
+    transform: scale(1.05);
+}

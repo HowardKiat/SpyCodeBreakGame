@@ -1,0 +1,16 @@
+doctype html
+html
+  head
+    title Waiting Room
+  body
+    h1 Waiting Room
+    if qrCodeUrl
+      img(src=qrCodeUrl alt="QR Code")
+      img(src="/images/spy_codebreakLogo.png" alt="Spy Theme") 
+      //- put qr image
+    else
+      p QR code could not be generated.
+    p Scan the QR code to join the game.
+    form(action="/uploadQR" method="post" enctype="multipart/form-data")
+      input(type="file" name="qrImage" accept="image/*" required)
+      button(type="submit") Upload QR Code

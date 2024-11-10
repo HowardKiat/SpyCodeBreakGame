@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake & Ladder Game</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" />
+    <!-- Corrected the CSS file paths -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/game.css"> <!-- Make sure this path is correct -->
+    <link rel='icon' href='/assets/favicon.png' type='image/x-icon'> <!-- Corrected the image path -->
+</head>
+
+<body>
+    <div id="first-box">
+        <!-- Welcome and Instructions -->
+        <div class="small-box" id="welcome">
+            <div class="close-btn">
+                <button onclick="closeWelcome()"><img src="/assets/close.png" alt="close"></button>
+                <!-- Corrected the path -->
+            </div>
+            <div class="message">
+                <h1>Welcome to Snake & Ladder Game</h1>
+                <div class="group-box">
+                    <p>This is a simple online quiz game developed in a board game concept. The board game chosen for
+                        this is snake and ladder. You can add multiple players and play the game by answering questions.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Instructions -->
+        <div class="small-box" style="display: none;" id="instruction">
+            <div class="close-btn">
+                <button onclick="closeInstruction()"><img src="/assets/close.png" alt="close"></button>
+                <!-- Corrected the path -->
+            </div>
+            <div class="message">
+                <h1>Instructions</h1>
+                <div class="instructions">
+                    <p>1. Enter player names and start the game.</p>
+                    <p>2. A maximum of 6 players is allowed.</p>
+                    <p>3. Players need to answer the question correctly to roll the dice.</p>
+                    <p>4. The player who reaches the 100th box first will win.</p>
+                </div>
+                <a href="https://github.com/MichaelDepp" target="_blank">Developed By Michael</a>
+            </div>
+        </div>
+
+        <!-- Player Adding Section -->
+        <div class="small-box" style="display: none;" id="addplayer">
+            <div class="message">
+                <h1>Add Players</h1>
+                <input type="text" id="player-name" placeholder="Enter Player Name" />
+                <input style="margin-top: 2vh;" id="player-submit" type="submit" value="Add" onclick="playertrigger()">
+                <p id="warning" style="display: none;">Invalid! Enter Valid Name!</p>
+                <p id="left-player">6 Players Left</p>
+                <div id="added-players"></div>
+                <div id="start-game">
+                    <button id="start-btn" disabled onclick="launchgame()">Start Game</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Content -->
+    <div class="main-content">
+        <!-- Game Board -->
+        <div class="board">
+            <img src="/images/board.png" alt="Game Board" id="game-board" /> <!-- Corrected the path -->
+        </div>
+
+        <!-- Dice and Current Player -->
+        <div class="right-block">
+            <div class="player">
+                <div class="current">
+                    <label>Current Player</label>
+                    <div class="position">
+                        <p id="current-player"></p>
+                        <p id="current-posi"></p>
+                    </div>
+                </div>
+                <div class="total">
+                    <label>Total Player</label>
+                    <div id="total-player-display"></div>
+                </div>
+            </div>
+            <div class="roll-dice">
+                <div class="dice-box">
+                    <img id="dice" src="/images/dice/dice1.png" alt="Dice"> <!-- Corrected the path -->
+                </div>
+                <div class="control">
+                    <button id="btn-roll" onclick="dicerollvalue()" disabled>Roll Dice</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Container -->
+    <div id="questionContainer" style="display: none;">
+        <div id="question-box">
+            <p id="question-text"></p>
+            <div id="question-options">
+                <!-- Options dynamically added here -->
+            </div>
+            <button onclick="validateAnswer()">Submit Answer</button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/js/index.js"></script> <!-- Corrected the path -->
+
+    <script>
+        // Player management functions
+        let players = [];
+        let currentPlayerIndex = 0;
+
+        function playertrigger() {
+            let pname = document.getElementById('player-name').value.trim();
+            let warning = document.getElementById('warning');
+
+            if (pname === "") {
+                warning.style.color = 'red';
+                warning.style.display = 'block';
+            } else {
+                warning.style.display = 'none';
+                addPlayer(pname);
+            }
+        }
+
+        function addPlayer(name) {
+            if (players.length < 6) {
+                players.push(name);
+                document.getElementById('added-players').innerHTML = players.join(', ');
+                document.getElementById('left-player').innerHTML = (6 - players.length) + ' Players Left';
+                if (players.length == 6) {
+                    document.getElementById('start-btn').disabled = false;
+                }
+            }
+        }
+
+        function launchgame() {
+            closeAddPlayer();
+            startGame();
+        }
+
+        function closeWelcome() {
+            document.getElementById('welcome').style.display = "none";
+            document.getElementById('instruction').style.display = "block";
+        }
+
+        function closeInstruction() {
+            document.getElementById('instruction').style.display = "none";
+            document.getElementById('addplayer').style.display = "block";
+        }
+
+        function closeAddPlayer() {
+            document.getElementById('addplayer').style.display = "none";
+            document.getElementById('first-box').style.display = "none";
+        }
+
+        // Dice roll and question logic
+        function dicerollvalue() {
+            let roll = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('dice').src = `/images/dice/dice${roll}.png`; // Corrected the path
+
+            // Example of landing on a special square
+            if (roll === 6) {
+                showQuestion();
+            }
+        }
+
+        function showQuestion() {
+            $.get('/randomQuestion', function (question) {
+                $('#questionContainer').html(` 
+                    <p>${question.question}</p>
+                    ${question.options.map(opt => `<button class="option-btn">${opt}</button>`).join('')}
+                `);
+                $('#questionContainer').show();
+
+                $('.option-btn').on('click', function () {
+                    const selectedOption = $(this).text();
+                    console.log('Selected option:', selectedOption);
+                });
+            }).fail(function () {
+                console.error('Error fetching the question');
+            });
+        }
+
+        function validateAnswer() {
+            // Logic to validate if the selected answer is correct
+            $('#questionContainer').hide();
+        }
+
+        // Functions to start the game and manage gameplay
+        function startGame() {
+            document.getElementById('current-player').innerText = players[currentPlayerIndex];
+            document.getElementById('btn-roll').disabled = false;
+        }
+    </script>
+</body>
+
+</html>

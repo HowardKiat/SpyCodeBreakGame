@@ -1,0 +1,22 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Login
+    link(rel="stylesheet" href="/css/login.css")
+  body
+    .container
+      h1 Login
+      form(action="/login" method="POST")
+        label(for="email") Email:
+        input#email(type="email" name="email" autocomplete="email" required)
+        label(for="password") Password:
+        input#password(type="password" name="password" autocomplete="current-password" required)
+        label(for="rememberMe")
+          input#rememberMe(type="checkbox" name="rememberMe")
+          | Remember Me
+        button(type="submit") Login
+        .links
+          a(href="/register") Don't have an account? Register here.
+          a(href="/forgot-password") Forgot password?
