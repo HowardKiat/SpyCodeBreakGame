@@ -1,45 +1,53 @@
 // routes/game.js
+
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const { v4: uuidv4 } = require('uuid');
 
-// Get random question from the database
-async function getRandomQuestion() {
-    try {
-        const [rows] = await db.promise().query(
-            'SELECT * FROM questions ORDER BY RAND() LIMIT 1'
-        );
-        return rows[0];
-    } catch (error) {
-        console.error('Error fetching question:', error);
-        return null;
+// Store game rooms in memory
+const gameRooms = new Map();
+
+// Middleware to check if room exists
+const checkRoom = async (req, res, next) => {
+    const roomId = req.params.roomId || req.body.roomId || req.query.roomId;
+    const room = gameRooms.get(roomId);
+
+    if (!room) {
+        return res.status(404).json({ success: false, message: 'Room not found' });
     }
-}
+    req.gameRoom = room;
+    next();
+};
 
 // Create a new game room
 router.post('/create', async (req, res) => {
-    const { user_id } = req.body;
+    const userId = req.session.user.id;
     const roomId = uuidv4();
 
     try {
-        const [result] = await db.promise().query(
-            'INSERT INTO game_rooms (room_id, creator_id, status) VALUES (?, ?, ?)',
-            [roomId, user_id, 'waiting']
-        );
+        // Create room in memory
+        gameRooms.set(roomId, {
+            id: roomId,
+            host: userId,
+            players: [{
+                id: userId,
+                username: req.session.user.username,
+                isHost: true
+            }],
+            status: 'waiting',
+            createdAt: new Date()
+        });
 
-        // Add creator as first player
+        // Create room in database
         await db.promise().query(
-            'INSERT INTO room_players (room_id, user_id, position) VALUES (?, ?, ?)',
-            [roomId, user_id, 1]
+            'INSERT INTO game_rooms (room_id, creator_id, status) VALUES (?, ?, ?)',
+            [roomId, userId, 'waiting']
         );
 
         res.json({
             success: true,
-            room: {
-                id: roomId,
-                status: 'waiting'
-            }
+            roomId: roomId
         });
     } catch (error) {
         console.error('Error creating game room:', error);
@@ -50,45 +58,32 @@ router.post('/create', async (req, res) => {
     }
 });
 
-// Join an existing game room
-router.post('/join', async (req, res) => {
-    const { room_id, user_id } = req.body;
+// Join a game room
+router.post('/join', checkRoom, async (req, res) => {
+    const userId = req.session.user.id;
+    const { roomId } = req.body;
+    const room = req.gameRoom;
 
     try {
-        // Check if room exists and is in waiting status
-        const [rooms] = await db.promise().query(
-            'SELECT * FROM game_rooms WHERE room_id = ? AND status = ?',
-            [room_id, 'waiting']
-        );
-
-        if (rooms.length === 0) {
-            return res.status(404).json({
+        // Check if game is already in progress
+        if (room.status !== 'waiting') {
+            return res.status(400).json({
                 success: false,
-                message: 'Room not found or game already started'
+                message: 'Game is already in progress'
             });
         }
 
-        // Check if player already in room
-        const [existingPlayer] = await db.promise().query(
-            'SELECT * FROM room_players WHERE room_id = ? AND user_id = ?',
-            [room_id, user_id]
-        );
-
-        if (existingPlayer.length > 0) {
+        // Check if player is already in the room
+        if (room.players.some(p => p.id === userId)) {
             return res.json({
                 success: true,
                 message: 'Already in room',
-                room: rooms[0]
+                room: room
             });
         }
 
-        // Check number of players
-        const [playerCount] = await db.promise().query(
-            'SELECT COUNT(*) as count FROM room_players WHERE room_id = ?',
-            [room_id]
-        );
-
-        if (playerCount[0].count >= 6) {
+        // Check if room is full (max 4 players)
+        if (room.players.length >= 4) {
             return res.status(400).json({
                 success: false,
                 message: 'Room is full'
@@ -96,15 +91,21 @@ router.post('/join', async (req, res) => {
         }
 
         // Add player to room
+        room.players.push({
+            id: userId,
+            username: req.session.user.username,
+            isHost: false
+        });
+
+        // Update database
         await db.promise().query(
             'INSERT INTO room_players (room_id, user_id, position) VALUES (?, ?, ?)',
-            [room_id, user_id, 1]
+            [roomId, userId, 1]
         );
 
         res.json({
             success: true,
-            message: 'Joined room successfully',
-            room: rooms[0]
+            room: room
         });
     } catch (error) {
         console.error('Error joining game room:', error);
@@ -116,26 +117,39 @@ router.post('/join', async (req, res) => {
 });
 
 // Start game
-router.post('/start', async (req, res) => {
-    const { room_id } = req.body;
+router.post('/start', checkRoom, async (req, res) => {
+    const userId = req.session.user.id;
+    const room = req.gameRoom;
 
     try {
+        // Check if user is host
+        if (room.host !== userId) {
+            return res.status(403).json({
+                success: false,
+                message: 'Only the host can start the game'
+            });
+        }
+
+        // Check minimum players (2)
+        if (room.players.length < 2) {
+            return res.status(400).json({
+                success: false,
+                message: 'Need at least 2 players to start'
+            });
+        }
+
         // Update room status
+        room.status = 'active';
+
+        // Update database
         await db.promise().query(
             'UPDATE game_rooms SET status = ? WHERE room_id = ?',
-            ['active', room_id]
-        );
-
-        // Get all players in room
-        const [players] = await db.promise().query(
-            'SELECT user_id, position FROM room_players WHERE room_id = ?',
-            [room_id]
+            ['active', room.id]
         );
 
         res.json({
             success: true,
-            message: 'Game started',
-            players: players
+            room: room
         });
     } catch (error) {
         console.error('Error starting game:', error);
@@ -147,68 +161,11 @@ router.post('/start', async (req, res) => {
 });
 
 // Get room info
-router.get('/room/:roomId', async (req, res) => {
-    const { roomId } = req.params;
-
-    try {
-        const [room] = await db.promise().query(
-            'SELECT * FROM game_rooms WHERE room_id = ?',
-            [roomId]
-        );
-
-        if (room.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Room not found'
-            });
-        }
-
-        const [players] = await db.promise().query(
-            `SELECT rp.*, u.username 
-             FROM room_players rp 
-             JOIN users u ON rp.user_id = u.id 
-             WHERE rp.room_id = ?`,
-            [roomId]
-        );
-
-        res.json({
-            success: true,
-            room: {
-                ...room[0],
-                players: players
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching room info:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch room info'
-        });
-    }
-});
-
-// Get random question
-router.get('/question', async (req, res) => {
-    try {
-        const question = await getRandomQuestion();
-        if (!question) {
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to fetch question'
-            });
-        }
-
-        res.json({
-            success: true,
-            question: question
-        });
-    } catch (error) {
-        console.error('Error fetching question:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch question'
-        });
-    }
+router.get('/room/:roomId', checkRoom, (req, res) => {
+    res.json({
+        success: true,
+        room: req.gameRoom
+    });
 });
 
 module.exports = router;
