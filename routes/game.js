@@ -1,105 +1,214 @@
+// routes/game.js
 const express = require('express');
 const router = express.Router();
-const db = require('../../../SpyGame/backend/db');
+const db = require('../db');
+const { v4: uuidv4 } = require('uuid');
 
-// Route to create a new game session
-router.post('/create', (req, res) => {
-    const { session_name, user_id } = req.body; // Assuming the user's ID is passed in the body
-
-    // Validate that session_name and user_id are provided
-    if (!session_name || !user_id) {
-        return res.status(400).json({ message: 'Session name and user ID are required' });
+// Get random question from the database
+async function getRandomQuestion() {
+    try {
+        const [rows] = await db.promise().query(
+            'SELECT * FROM questions ORDER BY RAND() LIMIT 1'
+        );
+        return rows[0];
+    } catch (error) {
+        console.error('Error fetching question:', error);
+        return null;
     }
+}
 
-    // Insert new game session into the game_sessions table
-    const query = 'INSERT INTO game_sessions (session_name, status) VALUES (?, ?)';
-    db.query(query, [session_name, 'active'], (error, results) => {
-        if (error) {
-            console.error('Error creating game session:', error);
-            return res.status(500).json({ message: 'Error creating game session' });
-        }
+// Create a new game room
+router.post('/create', async (req, res) => {
+    const { user_id } = req.body;
+    const roomId = uuidv4();
 
-        const session_id = results.insertId; // Get the newly created session's ID
+    try {
+        const [result] = await db.promise().query(
+            'INSERT INTO game_rooms (room_id, creator_id, status) VALUES (?, ?, ?)',
+            [roomId, user_id, 'waiting']
+        );
 
-        // Insert the user as the first participant in the user_sessions table
-        const userSessionQuery = 'INSERT INTO user_sessions (user_id, session_id) VALUES (?, ?)';
-        db.query(userSessionQuery, [user_id, session_id], (error) => {
-            if (error) {
-                console.error('Error adding user to game session:', error);
-                return res.status(500).json({ message: 'Error adding user to session' });
+        // Add creator as first player
+        await db.promise().query(
+            'INSERT INTO room_players (room_id, user_id, position) VALUES (?, ?, ?)',
+            [roomId, user_id, 1]
+        );
+
+        res.json({
+            success: true,
+            room: {
+                id: roomId,
+                status: 'waiting'
             }
-
-            const newSession = { session_id, session_name, status: 'active' };
-            res.json({
-                message: 'Game session created successfully, user added',
-                session: newSession
-            });
         });
-    });
-});
-
-// Route to join an existing game session
-router.post('/join', (req, res) => {
-    const { user_id, session_id } = req.body;
-
-    // Validate that both user_id and session_id are provided
-    if (!user_id || !session_id) {
-        return res.status(400).json({ message: 'User ID and Session ID are required' });
+    } catch (error) {
+        console.error('Error creating game room:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to create game room'
+        });
     }
+});
 
-    // Insert the user into the user_sessions table
-    const query = 'INSERT INTO user_sessions (user_id, session_id) VALUES (?, ?)';
-    db.query(query, [user_id, session_id], (error) => {
-        if (error) {
-            console.error('Error joining game session:', error);
-            return res.status(500).json({ message: 'Error joining game session' });
-        }
+// Join an existing game room
+router.post('/join', async (req, res) => {
+    const { room_id, user_id } = req.body;
 
-        // Fetch the session details
-        const sessionQuery = 'SELECT * FROM game_sessions WHERE session_id = ?';
-        db.query(sessionQuery, [session_id], (error, results) => {
-            if (error) {
-                console.error('Error fetching session:', error);
-                return res.status(500).json({ message: 'Error fetching session' });
-            }
+    try {
+        // Check if room exists and is in waiting status
+        const [rooms] = await db.promise().query(
+            'SELECT * FROM game_rooms WHERE room_id = ? AND status = ?',
+            [room_id, 'waiting']
+        );
 
-            const session = results[0];
-            res.json({
-                message: 'User joined the session successfully',
-                session: session
+        if (rooms.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Room not found or game already started'
             });
+        }
+
+        // Check if player already in room
+        const [existingPlayer] = await db.promise().query(
+            'SELECT * FROM room_players WHERE room_id = ? AND user_id = ?',
+            [room_id, user_id]
+        );
+
+        if (existingPlayer.length > 0) {
+            return res.json({
+                success: true,
+                message: 'Already in room',
+                room: rooms[0]
+            });
+        }
+
+        // Check number of players
+        const [playerCount] = await db.promise().query(
+            'SELECT COUNT(*) as count FROM room_players WHERE room_id = ?',
+            [room_id]
+        );
+
+        if (playerCount[0].count >= 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'Room is full'
+            });
+        }
+
+        // Add player to room
+        await db.promise().query(
+            'INSERT INTO room_players (room_id, user_id, position) VALUES (?, ?, ?)',
+            [room_id, user_id, 1]
+        );
+
+        res.json({
+            success: true,
+            message: 'Joined room successfully',
+            room: rooms[0]
         });
-    });
+    } catch (error) {
+        console.error('Error joining game room:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to join game room'
+        });
+    }
 });
 
-// Route to get all active game sessions
-router.get('/sessions', (req, res) => {
-    const query = 'SELECT * FROM game_sessions WHERE status = ?';
+// Start game
+router.post('/start', async (req, res) => {
+    const { room_id } = req.body;
 
-    db.query(query, ['active'], (error, results) => {
-        if (error) {
-            console.error('Error fetching game sessions:', error);
-            return res.status(500).json({ message: 'Error fetching game sessions' });
-        }
+    try {
+        // Update room status
+        await db.promise().query(
+            'UPDATE game_rooms SET status = ? WHERE room_id = ?',
+            ['active', room_id]
+        );
 
-        res.json(results);
-    });
+        // Get all players in room
+        const [players] = await db.promise().query(
+            'SELECT user_id, position FROM room_players WHERE room_id = ?',
+            [room_id]
+        );
+
+        res.json({
+            success: true,
+            message: 'Game started',
+            players: players
+        });
+    } catch (error) {
+        console.error('Error starting game:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to start game'
+        });
+    }
 });
 
-// Route to get all users in a specific session
-router.get('/session/:id/users', (req, res) => {
-    const { id } = req.params;
+// Get room info
+router.get('/room/:roomId', async (req, res) => {
+    const { roomId } = req.params;
 
-    const query = 'SELECT u.user_id, u.created_at FROM user_sessions u WHERE u.session_id = ?';
+    try {
+        const [room] = await db.promise().query(
+            'SELECT * FROM game_rooms WHERE room_id = ?',
+            [roomId]
+        );
 
-    db.query(query, [id], (error, results) => {
-        if (error) {
-            console.error('Error fetching users for session:', error);
-            return res.status(500).json({ message: 'Error fetching users for session' });
+        if (room.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Room not found'
+            });
         }
 
-        res.json(results);
-    });
+        const [players] = await db.promise().query(
+            `SELECT rp.*, u.username 
+             FROM room_players rp 
+             JOIN users u ON rp.user_id = u.id 
+             WHERE rp.room_id = ?`,
+            [roomId]
+        );
+
+        res.json({
+            success: true,
+            room: {
+                ...room[0],
+                players: players
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching room info:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch room info'
+        });
+    }
+});
+
+// Get random question
+router.get('/question', async (req, res) => {
+    try {
+        const question = await getRandomQuestion();
+        if (!question) {
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to fetch question'
+            });
+        }
+
+        res.json({
+            success: true,
+            question: question
+        });
+    } catch (error) {
+        console.error('Error fetching question:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch question'
+        });
+    }
 });
 
 module.exports = router;

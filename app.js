@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
@@ -11,6 +12,7 @@ const fs = require('fs');
 const jsQR = require('jsqr');
 const { createCanvas, loadImage } = require('canvas');
 const bodyParser = require('body-parser');
+const MySQLStore = require('express-mysql-session')(session);
 
 const db = require('./db');
 
@@ -21,7 +23,6 @@ const upload = multer({ dest: 'uploads/' });
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Socket setup
 const io = socket(server);
 let users = [];
 let gameRooms = {};
@@ -138,14 +139,47 @@ const profileRoutes = require('./routes/profile');
 const settingsRoutes = require('./routes/settings');
 
 app.set('view engine', 'pug');
-app.set('views', path.join(__dirname, './views'));
+app.set('views', path.join(__dirname, 'views'));
 
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+const dbConfig = {
+    host: process.env.DB_HOST,
+    port: parseInt(process.env.DB_PORT),
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
+};
+
+// Configure session store
+const sessionStore = new MySQLStore({
+    ...dbConfig,
+    clearExpired: true,
+    checkExpirationInterval: 900000,
+    expiration: 86400000,
+    createDatabaseTable: true,
+    schema: {
+        tableName: 'sessions',
+        columnNames: {
+            session_id: 'session_id',
+            expires: 'expires',
+            data: 'data'
+        }
+    }
+});
+
 app.use(session({
-    secret: 'spykey',
+    key: 'snake_ladder_sid',
+    secret: process.env.SESSION_SECRET,
+    store: sessionStore,
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 86400000 // 24 hours
+    }
 }));
 
 app.use(flash());

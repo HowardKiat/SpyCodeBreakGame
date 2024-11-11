@@ -1,28 +1,87 @@
 doctype html
-html
+html(lang="en")
   head
-    title Dashboard
+    title Spy Code Break - Dashboard
     link(rel="stylesheet" href="/css/dashboard.css")
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css")
   body
-    header
+    header.spy-theme
       .profile
-        img(src=user.profilePicUrl alt="Profile Picture" class="profile-pic")
+        if user.profilePicUrl
+          img(src=user.profilePicUrl alt="Profile Picture" class="profile-pic")
+        else
+          i.fas.fa-user-secret.profile-pic
+        span.username #{user.username}
       nav
         ul
-          li: a(href="/profile") Profile
-          li: a(href="/leaderboard") Leaderboard
-          li: a(href="/settings") Settings
-          li: a(href="/logout") Logout
-    main
-      section#welcome
-        h2 Welcome, #{user.username}!
-        p Brief introduction here.
-      section#game-actions
-        button(onclick="location.href='/waitingRoom'") Join Waiting Room
-      section#stats
-        h3 Your Stats
-      section#leaderboard
-        h3 Leaderboard
+          li: a(href="/profile"): i.fas.fa-id-card &nbsp; Profile
+          li: a(href="/leaderboard"): i.fas.fa-trophy &nbsp; Leaderboard
+          li: a(href="/settings"): i.fas.fa-cog &nbsp; Settings
+          li: a(href="/logout"): i.fas.fa-sign-out-alt &nbsp; Logout
+    
+    main.dashboard-content
+      section#welcome.spy-card
+        h2 Welcome, Agent #{user.username}!
+        p.mission-text Your next mission awaits. Are you ready to crack the code?
+      
+      section#game-actions.spy-card
+        h3 Mission Control
+        .action-buttons
+          button.spy-button.create-game(onclick="createGame()")
+            i.fas.fa-plus
+            span Create Mission
+          button.spy-button.join-game(onclick="location.href='/waitingRoom'")
+            i.fas.fa-door-open
+            span Join Mission
+      
+      section#stats.spy-card
+        h3 Agent Statistics
+        .stats-grid
+          .stat-item
+            i.fas.fa-star
+            .stat-value #{user.totalGames || 0}
+            .stat-label Missions Completed
+          .stat-item
+            i.fas.fa-trophy
+            .stat-value #{user.victories || 0}
+            .stat-label Successful Operations
+          .stat-item
+            i.fas.fa-bolt
+            .stat-value #{user.currentStreak || 0}
+            .stat-label Current Streak
+      
+      section#recent-games.spy-card
+        h3 Recent Operations
+        .games-list
+          if recentGames && recentGames.length > 0
+            each game in recentGames
+              .game-item
+                span.date #{game.date}
+                span.result(class=game.won ? 'success' : 'failure') #{game.won ? 'Success' : 'Failed'}
+                span.score #{game.score} pts
+          else
+            p.no-games No recent missions available
 
-    footer
-      p © 2024 Your Company Name
+    script.
+      function createGame() {
+        fetch('/game/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            session_name: 'Mission_' + Date.now(),
+            user_id: '#{user.id}'
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if(data.success) {
+            window.location.href = '/waitingRoom?session=' + data.session.session_id;
+          }
+        })
+        .catch(error => console.error('Error:', error));
+      }
+
+    footer.spy-footer
+      p © 2024 Spy Code Break - Top Secret

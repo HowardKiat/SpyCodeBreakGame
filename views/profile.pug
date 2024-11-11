@@ -1,24 +1,102 @@
 doctype html
-html
+html(lang="en")
   head
-    title Profile
+    title Agent Profile - #{user.username}
     link(rel="stylesheet" href="/css/profile.css")
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css")
+  
   body
-    header
-      nav
-        ul
-          li: a(href="/dashboard") Dashboard
-          li: a(href="/leaderboard") Leaderboard
-          li: a(href="/settings") Settings
-          li: a(href="/logout") Logout
-    main
-      section#profile-info
-        h2 Profile Information
-        p Username: #{user.username}
-        p Email: #{user.email}
-        img(src=user.profile_pic, alt="Profile Picture")
-        a(href="/edit-profile") Edit Profile
-      section#game-stats
-        h3 Game Stats
-    footer
-      p © 2024 Spy Code Break
+    header.spy-theme
+      .header-content
+        a.back-btn(href="/dashboard")
+          i.fas.fa-arrow-left
+          span Back to Dashboard
+        h1 Agent Profile
+    
+    main.profile-content
+      if successMessage
+        .alert.success
+          p= successMessage
+      if errorMessage
+        .alert.error
+          p= errorMessage
+      
+      .profile-grid
+        section.profile-card
+          .profile-header
+            if user.profilePicUrl
+              img.profile-pic(src=user.profilePicUrl alt="Profile Picture")
+            else
+              i.fas.fa-user-secret.profile-pic
+            h2 Agent #{user.username}
+            p.codename= user.email
+          
+          form.profile-form(action="/profile/update" method="POST" enctype="multipart/form-data")
+            .form-group
+              label(for="profilePic") Update Profile Picture
+              input#profilePic(type="file" name="profilePic" accept="image/*")
+            
+            .form-group
+              label(for="username") Codename (Username)
+              input#username(type="text" name="username" value=user.username)
+            
+            .form-group
+              label(for="email") Contact (Email)
+              input#email(type="email" name="email" value=user.email)
+            
+            button.spy-button(type="submit") Update Profile
+        
+        section.stats-card
+          h3 Mission Statistics
+          .stats-grid
+            .stat-item
+              i.fas.fa-star
+              .stat-value #{stats.total_games || 0}
+              .stat-label Total Missions
+            
+            .stat-item
+              i.fas.fa-trophy
+              .stat-value #{stats.games_won || 0}
+              .stat-label Successful Missions
+            
+            .stat-item
+              i.fas.fa-bolt
+              .stat-value #{stats.current_streak || 0}
+              .stat-label Current Streak
+            
+            .stat-item
+              i.fas.fa-chart-line
+              .stat-value #{stats.highest_streak || 0}
+              .stat-label Best Streak
+        
+        section.recent-games-card
+          h3 Recent Operations
+          .games-list
+            if recentGames && recentGames.length > 0
+              each game in recentGames
+                .game-item(class=game.won ? 'success' : 'failure')
+                  .game-date
+                    i.far.fa-calendar
+                    span= new Date(game.date).toLocaleDateString()
+                  .game-result
+                    if game.won
+                      i.fas.fa-check-circle
+                      span Mission Successful
+                    else
+                      i.fas.fa-times-circle
+                      span Mission Failed
+            else
+              p.no-games No recent missions available
+    
+    script.
+      // Preview profile picture before upload
+      document.getElementById('profilePic').onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            document.querySelector('.profile-pic').src = e.target.result;
+          }
+          reader.readAsDataURL(file);
+        }
+      };

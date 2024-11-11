@@ -1,115 +1,177 @@
-/* Reset default styles */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+/* public/css/dashboard.css */
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #e74c3c;
+    --accent-color: #3498db;
+    --bg-color: #ecf0f1;
+    --text-color: #2c3e50;
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #111;
-    color: #fff;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.spy-theme {
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 header {
-    background-color: #222;
-    padding: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 1rem 2rem;
 }
 
-h1 {
-    font-size: 24px;
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 nav ul {
-    list-style-type: none;
     display: flex;
+    gap: 2rem;
+    list-style: none;
 }
 
-nav ul li {
-    margin-right: 20px;
-}
-
-nav ul li a {
-    color: #fff;
+nav a {
+    color: white;
     text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.3s;
 }
 
-main {
-    padding: 20px;
+nav a:hover {
+    color: var(--accent-color);
 }
 
-section {
-    margin-bottom: 30px;
+.dashboard-content {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    display: grid;
+    gap: 2rem;
 }
 
-h2 {
-    font-size: 20px;
-    margin-bottom: 10px;
+.spy-card {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-h3 {
-    font-size: 18px;
-    margin-bottom: 10px;
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
 }
 
-ul {
-    list-style-type: none;
+.spy-button {
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    transition: transform 0.3s;
 }
 
-li {
-    margin-bottom: 5px;
+.create-game {
+    background: var(--secondary-color);
+    color: white;
 }
 
-.btn {
-    display: inline-block;
-    background-color: #ff0000;
-    color: #fff;
-    padding: 10px 20px;
-    text-decoration: none;
-    border-radius: 4px;
-    margin-right: 10px;
+.join-game {
+    background: var(--accent-color);
+    color: white;
 }
 
-.status {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-left: 5px;
+.spy-button:hover {
+    transform: translateY(-2px);
 }
 
-.status.online {
-    background-color: #00ff00;
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-top: 1rem;
 }
 
-.status.offline {
-    background-color: #ff0000;
-}
-
-.rank {
-    font-weight: bold;
-    margin-right: 10px;
-}
-
-.username {
-    margin-right: 10px;
-}
-
-.score {
-    color: #ffcc00;
-}
-
-.timestamp {
-    color: #888;
-    margin-right: 10px;
-}
-
-footer {
-    background-color: #222;
-    padding: 20px;
+.stat-item {
     text-align: center;
-    font-size: 14px;
+    padding: 1rem;
+    border-radius: 5px;
+    background: #f8f9fa;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--secondary-color);
+}
+
+.games-list {
+    margin-top: 1rem;
+}
+
+.game-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.success {
+    color: #27ae60;
+}
+
+.failure {
+    color: #c0392b;
+}
+
+.spy-footer {
+    text-align: center;
+    padding: 2rem;
+    background: var(--primary-color);
+    color: white;
+    margin-top: 4rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
 }
