@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
-const db = require('../../../SpyGame/backend/db'); // Adjust the path as necessary
+const db = require('../db'); // Adjust the path as necessary
 
 // Login Route (GET)
 router.get('/', (req, res) => {

@@ -10,6 +10,11 @@
 </head>
 
 <body>
+    <audio id="background-music" loop>
+        <source src="/audio/Jazz_Detective_Music.ogg" type="audio/ogg">
+        <source src="/audio/Jazz_Detective_Music.mp3" type="audio/mpeg">
+    </audio>
+
     <div class="board"></div>
     <img src="images/red_piece.png" alt="" hidden="true" id="red-piece" />
     <img src="images/blue_piece.png" alt="" hidden="true" id="blue-piece" />
@@ -35,8 +40,18 @@
         <img src="./images/dice/dice1.png" alt="" id="dice" />
     </div>
     <button class="btn draw-border" id="restart-btn" hidden>Restart</button>
+    <button class="btn draw-border" id="play-music-btn">Play Music</button>
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/index.js"></script>
+    <script>
+        // Play music in bg
+        document.getElementById('play-music-btn').addEventListener('click', () => {
+            const audio = document.getElementById('background-music');
+            audio.play().catch(error => {
+                console.error('Error playing audio:', error);
+            });
+        });
+    </script>
 </body>
 
 </html>

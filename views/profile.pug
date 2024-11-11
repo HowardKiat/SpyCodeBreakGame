@@ -1,6 +1,7 @@
 doctype html
 html
     head
+        link(rel="stylesheet" href="/css/profile.css")
         title Profile
     body
         h1 Profile
@@ -21,3 +22,5 @@ html
                 input(type="file" name="profile_pic")
             div
                 button(type="submit") Save Changes
+        div
+            button(onclick="window.location.href='/dashboard'") Back to Dashboard
