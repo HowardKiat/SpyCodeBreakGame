@@ -28,8 +28,9 @@ let currentTurn = 0; // To keep track of whose turn it is
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(flash());
+app.use('/uploads', express.static('uploads'));
 
-// Handle socket connections
+//Sockets
 io.on('connection', (socket) => {
     console.log('Made socket connection', socket.id);
 
@@ -137,6 +138,7 @@ function checkAuth(req, res, next) {
 }
 
 // Routes setup
+const authRoutes = require('./routes/authenticate');
 const registerRoutes = require('./routes/register');
 const loginRoutes = require('./routes/login');
 const dashboardRoutes = require('./routes/dashboard');
@@ -157,6 +159,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Debug log sessions
+app.use((req, res, next) => {
+    console.log('Session ID:', req.sessionID);
+    console.log('Session Data:', req.session);
+    next();
+});
+
+// Local Db Access
+app.locals.db = db;
 const dbConfig = {
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT),
@@ -186,13 +197,16 @@ app.use(session({
     key: 'snake_ladder_sid',
     secret: process.env.SESSION_SECRET,
     store: sessionStore,
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 86400000
-    }
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        httpOnly: true
+    },
+    name: 'sessionId'
 }));
+
 
 app.use((req, res, next) => {
     res.locals.successMessage = req.flash('successMessage');
@@ -202,19 +216,19 @@ app.use((req, res, next) => {
 });
 
 // Routes
+app.use('authenticate', authRoutes)
 app.use('/api/players', playersRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/register', registerRoutes);
 app.use('/login', loginRoutes);
-app.use('/dashboard', checkAuth, dashboardRoutes);
+app.use('/dashboard', dashboardRoutes);
 app.use('/forgot-password', forgotPasswordRoutes);
 app.use('/reset-password', resetPasswordRoutes);
 app.use('/', homeRoutes);
 app.use('/game', gameRoutes);
-app.use('/profile', profileRoutes);
+app.use('/', profileRoutes);
 app.use('/settings', settingsRoutes);
 app.use('/qrcode', qrCodeRoutes);
-
 app.get('/', (req, res) => res.redirect('/home'));
 
 app.get('/waitingRoom', checkAuth, (req, res) => {
