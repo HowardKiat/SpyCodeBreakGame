@@ -30,6 +30,7 @@ let gameRooms = {};
 io.on('connection', (socket) => {
     console.log('Made socket connection', socket.id);
 
+    // Handle player joining a room
     socket.on('join', (data) => {
         const { name, roomId } = data;
         if (!gameRooms[roomId]) {
@@ -44,6 +45,7 @@ io.on('connection', (socket) => {
         socket.emit('joined', gameRooms[roomId].players);
     });
 
+    // Handle dice roll and player movement
     socket.on('rollDice', (data) => {
         const user = gameRooms[data.roomId]?.players.find(u => u.id === socket.id);
         if (user) {
@@ -60,12 +62,14 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Restart game (reset all rooms)
     socket.on('restart', () => {
         users = [];
         gameRooms = {};
         io.emit('restart');
     });
 
+    // Handle user disconnection and cleanup
     socket.on('disconnect', () => {
         for (let roomId in gameRooms) {
             gameRooms[roomId].players = gameRooms[roomId].players.filter(user => user.id !== socket.id);
@@ -74,21 +78,25 @@ io.on('connection', (socket) => {
     });
 });
 
-// QR Code Route
-app.get('/generateQR', (req, res) => {
-    if (!req.session.user) return res.redirect('/login');
-    const roomId = uuidv4();
-    const url = `http://localhost:3000/game?roomId=${roomId}&username=${req.session.user.username}`;
+// Generate QR code
+app.get('/api/qrcode', async (req, res) => {
+    const { roomId } = req.query;
+    if (!roomId) {
+        return res.status(400).send('Missing roomId parameter');
+    }
 
-    QRCode.toDataURL(url, (err, qrCodeUrl) => {
-        if (err) return res.status(500).send('Error generating QR code');
-        res.render('waitingRoom', { qrCodeUrl });
-    });
+    try {
+        const qrCodeDataUrl = await QRCode.toDataURL(`http://localhost:3000/game?roomId=${roomId}`);
+        res.send(qrCodeDataUrl);
+    } catch (error) {
+        console.error('Error generating QR code:', error);
+        res.status(500).send('Error generating QR code');
+    }
 });
 
-// Handle QR code image upload
+// QR Code Image Upload Handler
 app.post('/uploadQR', upload.single('qrImage'), (req, res) => {
-    console.log('Uploading QR code image'); // Added logging
+    console.log('Uploading QR code image');
     if (!req.file) {
         req.flash('errorMessage', 'No file uploaded.');
         return res.redirect('/generateQR');
@@ -104,27 +112,32 @@ app.post('/uploadQR', upload.single('qrImage'), (req, res) => {
         const code = jsQR(imageData.data, image.width, image.height);
 
         if (code) {
-            console.log('QR Code Data:', code.data); // Added logging
+            console.log('QR Code Data:', code.data);
             req.flash('successMessage', `QR Code Data: ${code.data}`);
         } else {
             req.flash('errorMessage', 'Failed to decode QR code.');
         }
 
         fs.unlinkSync(qrImagePath);
-
         res.redirect('/generateQR');
     }).catch((err) => {
-        console.error('Error loading image:', err); // Added logging
+        console.error('Error loading image:', err);
         req.flash('errorMessage', 'Error processing the image.');
         res.redirect('/generateQR');
     });
 });
 
+// Authentication Middleware
 function checkAuth(req, res, next) {
     if (!req.session.user) {
         return res.redirect('/login');
     }
     next();
+}
+
+// Define generateRoomId function
+function generateRoomId() {
+    return Math.random().toString(36).substr(2, 9);
 }
 
 // Routes setup
@@ -137,6 +150,9 @@ const resetPasswordRoutes = require('./routes/reset-password');
 const gameRoutes = require('./routes/game');
 const profileRoutes = require('./routes/profile');
 const settingsRoutes = require('./routes/settings');
+const qrCodeRoutes = require('./routes/api/qrcode');
+const playersRoutes = require('./routes/api/players.routes')(db);
+const usersRoutes = require('./routes/api/users.routes')(db);
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
@@ -191,6 +207,9 @@ app.use((req, res, next) => {
     next();
 });
 
+// Routes
+app.use('/api/players', playersRoutes);
+app.use('/api/users', usersRoutes);
 app.use('/register', registerRoutes);
 app.use('/login', loginRoutes);
 app.use('/dashboard', checkAuth, dashboardRoutes);
@@ -200,18 +219,16 @@ app.use('/', homeRoutes);
 app.use('/game', gameRoutes);
 app.use('/profile', profileRoutes);
 app.use('/settings', settingsRoutes);
-
+app.use('/qrcode', qrCodeRoutes);
 app.get('/', (req, res) => {
     res.redirect('/home');
 });
 
 app.get('/waitingRoom', (req, res) => {
-    console.log('Accessing /waitingRoom'); // Added logging
     if (!req.session.user) {
-        console.log('No session user, redirecting to /login'); // Added logging
         return res.redirect('/login');
     }
-    res.render('waitingRoom');
+    res.render('waitingRoom', { roomId: generateRoomId(), user: req.session.user });
 });
 
 app.get('/logout', (req, res) => {
@@ -222,8 +239,16 @@ app.get('/logout', (req, res) => {
     });
 });
 
-app.get('/test', (req, res) => {
-    res.send('Test route is working!');
+// Route to serve the /api/players endpoint
+app.get('/api/players', (req, res) => {
+    // Fetch the player data from your database or data source
+    const players = [
+        { name: 'Player 1' },
+        { name: 'Player 2' },
+        { name: 'Player 3' },
+        { name: 'Player 4' }
+    ];
+    res.json(players);
 });
 
 app.get('/game', (req, res) => {

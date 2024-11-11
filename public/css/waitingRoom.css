@@ -1,0 +1,169 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.waiting-room {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 600px;
+    width: 100%;
+}
+
+.room-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.room-header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.room-header p {
+    margin: 10px 0;
+    font-size: 18px;
+}
+
+.room-header button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.room-header button i {
+    margin-right: 5px;
+}
+
+.qr-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.qr-section img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.players-section {
+    margin-bottom: 20px;
+}
+
+.players-section h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.players-list {
+    list-style: none;
+    padding: 0;
+}
+
+.player-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.player-item i {
+    margin-right: 10px;
+}
+
+.room-controls {
+    display: flex;
+    justify-content: space-between;
+}
+
+.room-controls button {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.room-controls button.leave-button {
+    background-color: #dc3545;
+}
+
+.room-controls button i {
+    margin-right: 5px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .waiting-room {
+        padding: 15px;
+    }
+
+    .room-header h1 {
+        font-size: 20px;
+    }
+
+    .room-header p {
+        font-size: 16px;
+    }
+
+    .room-header button {
+        padding: 8px 16px;
+    }
+
+    .players-section h2 {
+        font-size: 18px;
+    }
+
+    .room-controls button {
+        padding: 8px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .waiting-room {
+        padding: 10px;
+    }
+
+    .room-header h1 {
+        font-size: 18px;
+    }
+
+    .room-header p {
+        font-size: 14px;
+    }
+
+    .room-header button {
+        padding: 6px 12px;
+    }
+
+    .players-section h2 {
+        font-size: 16px;
+    }
+
+    .room-controls button {
+        padding: 6px 12px;
+    }
+}

@@ -2,69 +2,41 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake & Ladder Game</title>
-    <link rel="stylesheet" href="/css/game.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snakes and Ladders</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" />
+    <link rel="stylesheet" href="css/styles.css" />
 </head>
 
 <body>
-    <div class="game-container">
-        <!-- Game Board -->
-        <div class="board-container">
-            <canvas id="gameBoard"></canvas>
-            <div id="players"></div>
-        </div>
-
-        <!-- Game Controls -->
-        <div class="game-controls">
-            <!-- Current Player Info -->
-            <div class="current-player">
-                <h3>Current Turn</h3>
-                <div id="currentPlayer"></div>
-            </div>
-
-            <!-- Dice -->
-            <div class="dice-container">
-                <div id="dice">
-                    <img src="/images/dice/dice1.png" alt="Dice">
-                </div>
-                <button id="rollDice" disabled>Roll Dice</button>
-            </div>
-
-            <!-- Players List -->
-            <div class="players-list">
-                <h3>Players</h3>
-                <div id="playersList"></div>
-            </div>
-
-            <!-- Question Modal -->
-            <div id="questionModal" class="modal">
-                <div class="modal-content">
-                    <h2>Answer the Question</h2>
-                    <p id="questionText"></p>
-                    <div id="options"></div>
-                    <button id="submitAnswer">Submit Answer</button>
-                </div>
-            </div>
-
-            <!-- Game Over Modal -->
-            <div id="gameOverModal" class="modal">
-                <div class="modal-content">
-                    <h2>Game Over!</h2>
-                    <p id="winnerText"></p>
-                    <button onclick="restartGame()">Play Again</button>
-                    <button onclick="returnToDashboard()">Return to Dashboard</button>
-                </div>
-            </div>
+    <div class="board"></div>
+    <img src="images/red_piece.png" alt="" hidden="true" id="red-piece" />
+    <img src="images/blue_piece.png" alt="" hidden="true" id="blue-piece" />
+    <img src="images/yellow_piece.png" alt="" hidden="true" id="yellow-piece" />
+    <img src="images/green_piece.png" alt="" hidden="true" id="green-piece" />
+    <div class="container">
+        <canvas id="canvas"></canvas>
+    </div>
+    <div class="info-box">
+        <div class="form-group">
+            <input type="text" class="form-input" id="name" placeholder="Your name" required />
+            <button class="btn draw-border" id="start-btn">Join</button>
         </div>
     </div>
-
+    <div id="players-box">
+        <h3>Players currently online:</h3>
+        <br>
+        <table id="players-table"></table>
+    </div>
+    <div id="current-player"></div>
+    <button class="btn draw-border" id="roll-button" hidden>Roll</button>
+    <div class="dice">
+        <img src="./images/dice/dice1.png" alt="" id="dice" />
+    </div>
+    <button class="btn draw-border" id="restart-btn" hidden>Restart</button>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/js/snakeAndLadder.js"></script>
-    <script src="/js/game.js"></script>
+    <script src="js/index.js"></script>
 </body>
 
 </html>

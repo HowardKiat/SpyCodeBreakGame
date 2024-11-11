@@ -49,166 +49,197 @@ class SnakeAndLadder {
     }
 
     drawGrid() {
-        this.ctx.strokeStyle = '#000';
-        this.ctx.lineWidth = 1;
-
-        // Draw horizontal lines
-        for (let i = 0; i <= this.boardSize; i++) {
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, i * this.cellSize);
-            this.ctx.lineTo(this.canvas.width, i * this.cellSize);
-            this.ctx.stroke();
-        }
-
-        // Draw vertical lines
+        this.ctx.lineWidth = 2;
         for (let i = 0; i <= this.boardSize; i++) {
             this.ctx.beginPath();
             this.ctx.moveTo(i * this.cellSize, 0);
             this.ctx.lineTo(i * this.cellSize, this.canvas.height);
+            this.ctx.moveTo(0, i * this.cellSize);
+            this.ctx.lineTo(this.canvas.width, i * this.cellSize);
             this.ctx.stroke();
         }
     }
 
     numberCells() {
-        this.ctx.font = `${this.cellSize / 4}px Arial`;
-        this.ctx.fillStyle = '#000';
-        this.ctx.textAlign = 'center';
-
-        let number = 100;
-        let goingLeft = true;
-
+        this.ctx.font = '20px Arial';
+        this.ctx.fillStyle = 'black';
         for (let row = 0; row < this.boardSize; row++) {
-            if (goingLeft) {
-                for (let col = 0; col < this.boardSize; col++) {
-                    this.ctx.fillText(
-                        number.toString(),
-                        (col + 0.5) * this.cellSize,
-                        (row + 0.3) * this.cellSize
-                    );
-                    number--;
-                }
-            } else {
-                for (let col = this.boardSize - 1; col >= 0; col--) {
-                    this.ctx.fillText(
-                        number.toString(),
-                        (col + 0.5) * this.cellSize,
-                        (row + 0.3) * this.cellSize
-                    );
-                    number--;
-                }
+            for (let col = 0; col < this.boardSize; col++) {
+                const cellNumber = row * this.boardSize + col + 1;
+                this.ctx.fillText(cellNumber, col * this.cellSize + this.cellSize / 3, row * this.cellSize + this.cellSize / 2);
             }
-            goingLeft = !goingLeft;
         }
     }
 
     drawSnakesAndLadders() {
-        // Draw Snakes
-        this.ctx.lineWidth = 3;
-        for (const [start, end] of Object.entries(this.snakes)) {
-            const startPos = this.getCoordinates(parseInt(start));
-            const endPos = this.getCoordinates(parseInt(end));
-
-            // Draw snake
-            this.ctx.strokeStyle = '#FF0000';
-            this.ctx.beginPath();
-            this.ctx.moveTo(startPos.x, startPos.y);
-            this.ctx.lineTo(endPos.x, endPos.y);
-            this.ctx.stroke();
-
-            // Draw snake head
-            this.ctx.fillStyle = '#FF0000';
-            this.ctx.beginPath();
-            this.ctx.arc(startPos.x, startPos.y, 5, 0, Math.PI * 2);
-            this.ctx.fill();
-        }
-
-        // Draw Ladders
-        for (const [start, end] of Object.entries(this.ladders)) {
-            const startPos = this.getCoordinates(parseInt(start));
-            const endPos = this.getCoordinates(parseInt(end));
-
-            // Draw ladder
-            this.ctx.strokeStyle = '#00FF00';
-            this.ctx.beginPath();
-            this.ctx.moveTo(startPos.x, startPos.y);
-            this.ctx.lineTo(endPos.x, endPos.y);
-            this.ctx.stroke();
-
-            // Draw rungs
-            const dx = (endPos.x - startPos.x) / 4;
-            const dy = (endPos.y - startPos.y) / 4;
-            for (let i = 1; i < 4; i++) {
-                const x = startPos.x + dx * i;
-                const y = startPos.y + dy * i;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x - 10, y);
-                this.ctx.lineTo(x + 10, y);
-                this.ctx.stroke();
-            }
-        }
+        this.drawLadders();
+        this.drawSnakes();
     }
 
-    getCoordinates(position) {
-        position--; // Convert to 0-based index
-        const row = Math.floor(position / this.boardSize);
-        let col = position % this.boardSize;
+    drawSnakes() {
+        Object.entries(this.snakes).forEach(([start, end]) => {
+            const startCoords = this.getCoordinates(start);
+            const endCoords = this.getCoordinates(end);
+            this.ctx.strokeStyle = 'red';
+            this.ctx.lineWidth = 4;
+            this.ctx.beginPath();
+            this.ctx.moveTo(startCoords.x, startCoords.y);
+            this.ctx.lineTo(endCoords.x, endCoords.y);
+            this.ctx.stroke();
+        });
+    }
 
-        // Reverse column for odd rows (going right to left)
-        if (row % 2 === 1) {
-            col = this.boardSize - 1 - col;
-        }
+    drawLadders() {
+        Object.entries(this.ladders).forEach(([start, end]) => {
+            const startCoords = this.getCoordinates(start);
+            const endCoords = this.getCoordinates(end);
+            this.ctx.strokeStyle = 'green';
+            this.ctx.lineWidth = 6;
+            this.ctx.beginPath();
+            this.ctx.moveTo(startCoords.x, startCoords.y);
+            this.ctx.lineTo(endCoords.x, endCoords.y);
+            this.ctx.stroke();
+        });
+    }
 
+    getCoordinates(cell) {
+        const row = Math.floor((cell - 1) / this.boardSize);
+        const col = (cell - 1) % this.boardSize;
         return {
-            x: (col + 0.5) * this.cellSize,
-            y: (row + 0.5) * this.cellSize
+            x: col * this.cellSize + this.cellSize / 2,
+            y: row * this.cellSize + this.cellSize / 2
         };
     }
 
     movePlayer(playerId, position) {
-        this.playerPositions.set(playerId, position);
-        this.redrawPlayers();
-    }
-
-    redrawPlayers() {
-        // Clear previous player positions
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        // Redraw board
-        this.initializeBoard();
-
-        // Draw all players
-        let i = 0;
-        for (const [playerId, position] of this.playerPositions.entries()) {
-            const coords = this.getCoordinates(position);
-            const color = this.playerColors[i % this.playerColors.length];
-
-            // Draw player token
-            this.ctx.fillStyle = color;
-            this.ctx.beginPath();
-            this.ctx.arc(coords.x, coords.y, this.cellSize / 4, 0, Math.PI * 2);
-            this.ctx.fill();
-
-            // Draw player ID
-            this.ctx.fillStyle = '#000';
-            this.ctx.font = `${this.cellSize / 5}px Arial`;
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(playerId, coords.x, coords.y + 5);
-
-            i++;
-        }
+        const playerCoords = this.getCoordinates(position);
+        this.ctx.beginPath();
+        this.ctx.arc(playerCoords.x, playerCoords.y, 10, 0, 2 * Math.PI);
+        this.ctx.fillStyle = this.playerColors[this.players.indexOf(playerId)];
+        this.ctx.fill();
     }
 
     checkSnakesAndLadders(position) {
-        // Check if position has a snake
         if (this.snakes[position]) {
             return this.snakes[position];
-        }
-        // Check if position has a ladder
-        if (this.ladders[position]) {
+        } else if (this.ladders[position]) {
             return this.ladders[position];
         }
         return position;
     }
 }
 
-export default SnakeAndLadder;
+// public/js/game.js
+document.addEventListener('DOMContentLoaded', () => {
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('roomId');
+    const username = urlParams.get('username');
+
+    // Initialize socket connection
+    const socket = io();
+
+    // Initialize game elements
+    const canvas = document.getElementById('gameBoard');
+    const diceButton = document.getElementById('rollDice');
+    const diceDisplay = document.getElementById('dice');
+    const currentPlayerDisplay = document.getElementById('currentPlayer');
+    const playersListDisplay = document.getElementById('playersList');
+    const questionModal = document.getElementById('questionModal');
+    const gameOverModal = document.getElementById('gameOverModal');
+
+    // Set canvas size
+    canvas.width = 600;
+    canvas.height = 600;
+
+    // Initialize game board
+    const game = new SnakeAndLadder(canvas);
+    game.initializeBoard();
+
+    let currentTurn = null;
+    let players = [];
+    let isMyTurn = false;
+
+    // Join game room
+    socket.emit('join', { name: username, roomId });
+
+    // Socket event handlers
+    socket.on('joined', (roomPlayers) => {
+        players = roomPlayers;
+        updatePlayersList();
+        if (players.length === 1) {
+            currentTurn = socket.id;
+            isMyTurn = true;
+            diceButton.disabled = false;
+        }
+    });
+
+    socket.on('playersUpdated', (updatedPlayers) => {
+        players = updatedPlayers;
+        updatePlayersList();
+    });
+
+    socket.on('diceRolled', (data) => {
+        const { id, pos, num } = data;
+        animateDice(num);
+
+        // Update player position
+        const player = players.find(p => p.id === id);
+        if (player) {
+            // Check for snakes and ladders
+            const finalPosition = game.checkSnakesAndLadders(pos);
+            setTimeout(() => {
+                game.movePlayer(id, finalPosition);
+                player.pos = finalPosition;
+                updatePlayersList();
+            }, 1000);
+        }
+    });
+
+    socket.on('turnChanged', (nextPlayer) => {
+        currentTurn = nextPlayer.id;
+        isMyTurn = nextPlayer.id === socket.id;
+        diceButton.disabled = !isMyTurn;
+        updateCurrentPlayer();
+    });
+
+    socket.on('gameOver', (data) => {
+        showGameOver(data.winner);
+    });
+
+    socket.on('restart', () => {
+        location.reload();
+    });
+
+    // Dice roll handler
+    diceButton.addEventListener('click', () => {
+        if (!isMyTurn) return;
+
+        const num = Math.floor(Math.random() * 6) + 1;
+        socket.emit('rollDice', { roomId, num });
+        diceButton.disabled = true;
+    });
+
+    // Helper functions
+    function updatePlayersList() {
+        playersListDisplay.innerHTML = '';
+        players.forEach((player, index) => {
+            const playerDiv = document.createElement('div');
+            playerDiv.textContent = `${player.name} - Position: ${player.pos}`;
+            playersListDisplay.appendChild(playerDiv);
+        });
+    }
+
+    function updateCurrentPlayer() {
+        currentPlayerDisplay.textContent = `Current Player: ${players.find(p => p.id === currentTurn).name}`;
+    }
+
+    function animateDice(num) {
+        diceDisplay.textContent = `Rolled: ${num}`;
+    }
+
+    function showGameOver(winner) {
+        gameOverModal.style.display = 'block';
+        gameOverModal.querySelector('.winner').textContent = winner;
+    }
+});

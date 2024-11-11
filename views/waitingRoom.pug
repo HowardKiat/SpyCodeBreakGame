@@ -1,16 +1,71 @@
 doctype html
-html
+html(lang="en")
   head
-    title Waiting Room
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Waiting Room - SpyCodeBreak Snake And Ladder
+    link(rel="stylesheet" href="/css/waitingRoom.css")
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css")
+    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+    style.
+      /* Existing styles */
   body
-    h1 Waiting Room
-    if qrCodeUrl
-      img(src=qrCodeUrl alt="QR Code")
-      img(src="/images/spy_codebreakLogo.png" alt="Spy Theme") 
-      //- put qr image
-    else
-      p QR code could not be generated.
-    p Scan the QR code to join the game.
-    form(action="/uploadQR" method="post" enctype="multipart/form-data")
-      input(type="file" name="qrImage" accept="image/*" required)
-      button(type="submit") Upload QR Code
+    .container
+      .waiting-room
+        .room-header
+          h1 Game Room
+          p#roomId Room ID: #{roomId}
+          button#copyRoomId
+            i.fas.fa-copy
+            span Copy Room ID
+        .qr-section
+          .qr-container
+            img.qr-code(src=`/api/qrcode?roomId=${roomId}` alt="QR Code")
+            p Scan QR code to join the game
+        .join-section
+          input#gameIdInput(type="text" placeholder="Enter Game ID")
+          button#joinGameButton Join Game
+        .players-section
+          h2 Players
+          ul#playersList.players-list
+            // Players will be added dynamically via JavaScript
+        .room-controls
+          button#startGame.start-button(disabled)
+            i.fas.fa-play
+            span Start Game
+          button.leave-button
+            i.fas.fa-door-open
+            span Leave Room
+    script.
+      $(document).ready(function() {
+        function fetchPlayers() {
+          $.ajax({
+            url: '/api/players', // Updated the URL to use the /api/players endpoint
+            method: 'GET',
+            success: function(data) {
+              let playersList = '';
+              data.forEach(player => {
+                playersList += `<li>&#x263A; ${player.name}</li>`;
+              });
+              $('#playersList').html(playersList);
+            },
+            error: function(xhr, status, error) {
+              console.error('Error fetching players:', error);
+            }
+          });
+        }
+
+        // Fetch players every 2 seconds
+        setInterval(fetchPlayers, 2000);
+
+        // Handle game ID input and join button click
+        $('#joinGameButton').click(function() {
+          const gameId = $('#gameIdInput').val().trim();
+          if (gameId) {
+            // Implement logic to join the game using the provided gameId
+            console.log('Joining game with ID:', gameId);
+          }
+        });
+      });
+    script(src="/socket.io/socket.io.js")
+    script(src="/js/waitingRoom.js")
