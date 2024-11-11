@@ -4,8 +4,25 @@ html
     title Dashboard
     link(rel="stylesheet" href="/css/dashboard.css")
   body
-    h1 Dashboard
-    p Welcome, #{user.username}!
-    a(href="/waitingRoom") Go to Waiting Room
-    br
-    a(href="/logout") Logout
+    header
+      .profile
+        img(src=user.profilePicUrl alt="Profile Picture" class="profile-pic")
+      nav
+        ul
+          li: a(href="/profile") Profile
+          li: a(href="/leaderboard") Leaderboard
+          li: a(href="/settings") Settings
+          li: a(href="/logout") Logout
+    main
+      section#welcome
+        h2 Welcome, #{user.username}!
+        p Brief introduction here.
+      section#game-actions
+        button(onclick="location.href='/waitingRoom'") Join Waiting Room
+      section#stats
+        h3 Your Stats
+      section#leaderboard
+        h3 Leaderboard
+
+    footer
+      p © 2024 Your Company Name

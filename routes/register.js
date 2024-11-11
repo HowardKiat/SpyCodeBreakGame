@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
-const db = require('../../../SpyGame/backend/db');
+const db = require('../db');
 const passwordValidator = require('password-validator');
 
 // Define password schema

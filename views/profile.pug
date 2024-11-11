@@ -1,0 +1,24 @@
+doctype html
+html
+  head
+    title Profile
+    link(rel="stylesheet" href="/css/profile.css")
+  body
+    header
+      nav
+        ul
+          li: a(href="/dashboard") Dashboard
+          li: a(href="/leaderboard") Leaderboard
+          li: a(href="/settings") Settings
+          li: a(href="/logout") Logout
+    main
+      section#profile-info
+        h2 Profile Information
+        p Username: #{user.username}
+        p Email: #{user.email}
+        img(src=user.profile_pic, alt="Profile Picture")
+        a(href="/edit-profile") Edit Profile
+      section#game-stats
+        h3 Game Stats
+    footer
+      p © 2024 Spy Code Break

@@ -1,0 +1,26 @@
+doctype html
+html
+  head
+    title Settings
+    link(rel="stylesheet" href="/css/settings.css")
+  body
+    header
+      nav
+        ul
+          li: a(href="/dashboard") Dashboard
+          li: a(href="/profile") Profile
+          li: a(href="/leaderboard") Leaderboard
+          li: a(href="/logout") Logout
+    main
+      section#account-settings
+        h2 Account Settings
+        form(action="/update-settings" method="POST")
+          label(for="email") Email:
+          input(type="email" id="email" name="email" value=user.email)
+          label(for="password") Change Password:
+          input(type="password" id="password" name="password")
+          label(for="confirmPassword") Confirm Password:
+          input(type="password" id="confirmPassword" name="confirmPassword")
+          button(type="submit") Update Settings
+    footer
+      p © 2024 Spy Code Break

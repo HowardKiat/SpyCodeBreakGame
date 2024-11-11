@@ -11,7 +11,6 @@ const fs = require('fs');
 const jsQR = require('jsqr');
 const { createCanvas, loadImage } = require('canvas');
 
-// Ensure db.js exists and is in the correct location
 const db = require('./db');
 
 const app = express();
@@ -116,6 +115,13 @@ app.post('/uploadQR', upload.single('qrImage'), (req, res) => {
     });
 });
 
+function checkAuth(req, res, next) {
+    if (!req.session.user) {
+        return res.redirect('/login');
+    }
+    next();
+}
+
 // Routes setup
 const registerRoutes = require('./routes/register');
 const loginRoutes = require('./routes/login');
@@ -123,10 +129,12 @@ const dashboardRoutes = require('./routes/dashboard');
 const homeRoutes = require('./routes/home');
 const forgotPasswordRoutes = require('./routes/forgot-password');
 const resetPasswordRoutes = require('./routes/reset-password');
-const gameRoutes = require('./routes/game'); // Updated path
+const gameRoutes = require('./routes/game');
+const profileRoutes = require('./routes/profile');
+const settingsRoutes = require('./routes/settings');
 
 app.set('view engine', 'pug');
-app.set('views', path.join(__dirname, '../frontend/views'));
+app.set('views', path.join(__dirname, './views'));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -135,6 +143,7 @@ app.use(session({
     resave: false,
     saveUninitialized: true
 }));
+
 app.use(flash());
 
 app.use((req, res, next) => {
@@ -144,13 +153,6 @@ app.use((req, res, next) => {
     next();
 });
 
-function checkAuth(req, res, next) {
-    if (req.session.user) {
-        return next();
-    }
-    res.redirect('/login');
-}
-
 app.use('/register', registerRoutes);
 app.use('/login', loginRoutes);
 app.use('/dashboard', checkAuth, dashboardRoutes);
@@ -158,6 +160,8 @@ app.use('/forgot-password', forgotPasswordRoutes);
 app.use('/reset-password', resetPasswordRoutes);
 app.use('/', homeRoutes);
 app.use('/game', gameRoutes);
+app.use('/profile', profileRoutes);
+app.use('/settings', settingsRoutes);
 
 app.get('/', (req, res) => {
     res.redirect('/home');
@@ -195,3 +199,5 @@ app.get('/game', (req, res) => {
 server.listen(3000, () => {
     console.log('Server is running on http://localhost:3000');
 });
+
+module.exports = { app, server };

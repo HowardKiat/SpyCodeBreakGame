@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../../../SpyGame/backend/middleware/auth');
+const authMiddleware = require('../middleware/auth');
 
 // Dashboard Route (Protected)
 router.get('/', authMiddleware, (req, res) => {

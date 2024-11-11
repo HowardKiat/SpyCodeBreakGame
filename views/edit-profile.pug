@@ -1,0 +1,24 @@
+doctype html
+html
+  head
+    title Edit Profile
+    link(rel="stylesheet" href="/css/editProfile.css")
+  body
+    header
+      nav
+        ul
+          li: a(href="/dashboard") Dashboard
+          li: a(href="/profile") Profile
+    main
+      section#edit-profile
+        h2 Edit Profile
+        form(action="/update-profile" method="POST")
+          label(for="username") Username:
+          input(type="text" id="username" name="username" value=user.username)
+          label(for="email") Email:
+          input(type="email" id="email" name="email" value=user.email)
+          label(for="profile_pic") Profile Picture URL:
+          input(type="text" id="profile_pic" name="profile_pic" value=user.profile_pic)
+          button(type="submit") Save Changes
+    footer
+      p © 2024 Spy Code Break

@@ -1,183 +1,131 @@
-/* Reset some default styles */
+/* Global styles */
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    margin: 0;
-    font-family: 'Arial', sans-serif;
-    background-color: #1C1C1C;
-    /* Dark background for a spy theme */
-    color: #EAEAEA;
-    /* Light text for contrast */
+    font-family: 'Special Elite', cursive;
+    background-color: #000;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    /* Full viewport height */
+    min-height: 100vh;
 }
 
-/* Container Styles */
 .container {
+    background-color: #111;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
+    padding: 40px;
+    width: 400px;
+    max-width: 100%;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.container::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+    background: linear-gradient(45deg, #ff0000, #00ff00, #0000ff, #ff0000);
+    z-index: -1;
+    animation: borderGlow 5s linear infinite;
+}
+
+@keyframes borderGlow {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 32px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+form {
     display: flex;
     flex-direction: column;
-    /* Stacks children vertically */
-    align-items: center;
-    /* Horizontally centers children */
-    justify-content: center;
-    /* Vertically centers children */
-    padding: 20px;
-    background-color: #333;
-    /* Dark background for the container */
-    border-radius: 10px;
-    /* Rounded corners */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    /* Adds depth with shadow */
-    width: 100%;
-    max-width: 400px;
-    /* Max width for the container */
 }
 
-/* Title Styles */
-h1 {
-    font-size: 2.5em;
-    /* Larger font for the title */
-    margin-bottom: 20px;
-    /* Space below the title */
-}
-
-/* Form Styles */
-form {
-    width: 100%;
-    background-color: #333;
-    /* Dark background for the form */
-    border-radius: 10px;
-    /* Rounded corners */
-    padding: 20px;
-    /* Space inside the form */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    /* Adds depth with shadow */
-}
-
-/* Label Styles */
 label {
-    display: block;
-    /* Makes labels block elements */
-    margin: 15px 0 5px;
-    /* Space above and below labels */
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #fff;
 }
 
-/* Input Styles */
-input {
-    width: 100%;
-    /* Full width */
+input[type="email"],
+input[type="password"] {
     padding: 10px;
-    /* Padding inside inputs */
-    border: 1px solid #444;
-    /* Dark border */
-    border-radius: 5px;
-    /* Rounded corners */
-    background-color: #222;
-    /* Dark background for inputs */
-    color: #EAEAEA;
-    /* Light text */
-    font-size: 1em;
-    /* Font size */
-}
-
-/* Input Focus Styles */
-input:focus {
-    outline: none;
-    /* Remove default outline */
-    border-color: #FFD700;
-    /* Gold border on focus */
-    background-color: #333;
-    /* Slightly lighter background on focus */
-}
-
-/* Checkbox and label container */
-.remember-me {
-    display: flex;
-    /* Use flexbox to align items */
-    align-items: center;
-    /* Vertically center the checkbox and text */
-    margin: 15px 0;
-    /* Space above and below the checkbox */
-}
-
-/* Adjust the checkbox margin */
-input[type="checkbox"] {
-    margin-right: 10px;
-    /* Space to the right of the checkbox */
-}
-
-/* Button Styles */
-button {
-    background-color: #FFD700;
-    /* Gold background for buttons */
-    color: #1C1C1C;
-    /* Dark text */
+    margin-bottom: 20px;
     border: none;
-    /* No border */
-    border-radius: 5px;
-    /* Rounded corners */
-    padding: 10px 20px;
-    /* Padding for buttons */
-    font-size: 1.1em;
-    /* Font size for buttons */
+    border-radius: 3px;
+    font-size: 16px;
+    background-color: #333;
+    color: #fff;
+}
+
+input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+button {
+    padding: 10px;
+    background-color: #ff0000;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    font-size: 16px;
     cursor: pointer;
-    /* Pointer cursor */
-    transition: background-color 0.3s, transform 0.3s;
-    /* Smooth transitions */
-    margin-top: 20px;
-    /* Space above the button */
+    margin-top: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
-    background-color: #FFC300;
-    /* Lighter gold on hover */
-    transform: scale(1.05);
-    /* Slightly enlarges button on hover */
+    background-color: #cc0000;
 }
 
-/* Link Styles */
 .links {
-    margin-top: 15px;
-    /* Space above links */
-    text-align: center;
-    /* Center align links */
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
 }
 
 .links a {
-    color: #FFD700;
-    /* Gold color for links */
+    color: #fff;
     text-decoration: none;
-    /* Remove underline */
-    display: block;
-    /* Links take full width */
-    margin-top: 10px;
-    /* Space above links */
+    transition: color 0.3s ease;
 }
 
 .links a:hover {
-    text-decoration: underline;
-    /* Underline on hover */
+    color: #ff0000;
 }
 
-/* Responsive Styles */
-@media (max-width: 768px) {
-    h1 {
-        font-size: 2em;
-        /* Adjust title size for smaller screens */
+/* Media queries for responsiveness */
+@media (max-width: 480px) {
+    .container {
+        padding: 20px;
     }
 
-    form {
-        padding: 15px;
-        /* Adjust padding for smaller screens */
-    }
-
+    input[type="email"],
+    input[type="password"],
     button {
-        padding: 10px;
-        /* Adjust button padding */
+        font-size: 14px;
     }
 }
