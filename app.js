@@ -13,44 +13,26 @@ const jsQR = require('jsqr');
 const { createCanvas, loadImage } = require('canvas');
 const bodyParser = require('body-parser');
 const MySQLStore = require('express-mysql-session')(session);
-
-const db = require('./db');
+const db = require('./db');  // Assuming db.js exports a valid database connection
 
 const app = express();
 const server = http.createServer(app);
 const upload = multer({ dest: 'uploads/' });
+const io = socket(server); // Initialize socket.io
 
+let players = []; // List of all players
+let gameRooms = {}; // Stores game room info
+let currentTurn = 0; // To keep track of whose turn it is
+
+// Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(flash());
 
-const io = socket(server);
-let users = [];
-let gameRooms = {};
-
+// Handle socket connections
 io.on('connection', (socket) => {
     console.log('Made socket connection', socket.id);
-    // In your server.js
-    io.on('connection', (socket) => {
-        socket.on('join', (data) => {
-            const { name } = data;
-            const player = {
-                id: socket.id,
-                name,
-                pos: 1
-            };
-            players.push(player);
-            io.emit('joined', players);
-        });
 
-        socket.on('rollDice', (data) => {
-            const { num } = data;
-            const player = players.find(p => p.id === socket.id);
-            if (player) {
-                player.pos = calculateNewPosition(player.pos, num);
-                io.emit('rollDice', { id: player.id, pos: player.pos, num });
-            }
-        });
-    });
     // Handle player joining a room
     socket.on('join', (data) => {
         const { name, roomId } = data;
@@ -66,7 +48,7 @@ io.on('connection', (socket) => {
         socket.emit('joined', gameRooms[roomId].players);
     });
 
-    // Handle dice roll and player movement
+    // Handle dice roll
     socket.on('rollDice', (data) => {
         const user = gameRooms[data.roomId]?.players.find(u => u.id === socket.id);
         if (user) {
@@ -83,14 +65,14 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Restart game (reset all rooms)
+    // Handle game restart
     socket.on('restart', () => {
-        users = [];
-        gameRooms = {};
-        io.emit('restart');
+        players = []; // Reset players
+        gameRooms = {}; // Reset game rooms
+        io.emit('restart'); // Notify all clients to restart the game
     });
 
-    // Handle user disconnection and cleanup
+    // Handle player disconnection
     socket.on('disconnect', () => {
         for (let roomId in gameRooms) {
             gameRooms[roomId].players = gameRooms[roomId].players.filter(user => user.id !== socket.id);
@@ -99,7 +81,7 @@ io.on('connection', (socket) => {
     });
 });
 
-// Generate QR code
+// Generate QR code for game room
 app.get('/api/qrcode', async (req, res) => {
     const { roomId } = req.query;
     if (!roomId) {
@@ -107,7 +89,7 @@ app.get('/api/qrcode', async (req, res) => {
     }
 
     try {
-        const qrCodeDataUrl = await QRCode.toDataURL(`http://localhost:3000/game?roomId=${roomId}`);
+        const qrCodeDataUrl = await QRCode.toDataURL(`http://localhost:${process.env.PORT}/game?roomId=${roomId}`);
         res.send(qrCodeDataUrl);
     } catch (error) {
         console.error('Error generating QR code:', error);
@@ -117,7 +99,6 @@ app.get('/api/qrcode', async (req, res) => {
 
 // QR Code Image Upload Handler
 app.post('/uploadQR', upload.single('qrImage'), (req, res) => {
-    console.log('Uploading QR code image');
     if (!req.file) {
         req.flash('errorMessage', 'No file uploaded.');
         return res.redirect('/generateQR');
@@ -133,7 +114,6 @@ app.post('/uploadQR', upload.single('qrImage'), (req, res) => {
         const code = jsQR(imageData.data, image.width, image.height);
 
         if (code) {
-            console.log('QR Code Data:', code.data);
             req.flash('successMessage', `QR Code Data: ${code.data}`);
         } else {
             req.flash('errorMessage', 'Failed to decode QR code.');
@@ -154,11 +134,6 @@ function checkAuth(req, res, next) {
         return res.redirect('/login');
     }
     next();
-}
-
-// Define generateRoomId function
-function generateRoomId() {
-    return Math.random().toString(36).substr(2, 9);
 }
 
 // Routes setup
@@ -215,11 +190,9 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 86400000 // 24 hours
+        maxAge: 86400000
     }
 }));
-
-app.use(flash());
 
 app.use((req, res, next) => {
     res.locals.successMessage = req.flash('successMessage');
@@ -241,15 +214,11 @@ app.use('/game', gameRoutes);
 app.use('/profile', profileRoutes);
 app.use('/settings', settingsRoutes);
 app.use('/qrcode', qrCodeRoutes);
-app.get('/', (req, res) => {
-    res.redirect('/home');
-});
 
-app.get('/waitingRoom', (req, res) => {
-    if (!req.session.user) {
-        return res.redirect('/login');
-    }
-    res.render('waitingRoom', { roomId: generateRoomId(), user: req.session.user });
+app.get('/', (req, res) => res.redirect('/home'));
+
+app.get('/waitingRoom', checkAuth, (req, res) => {
+    res.render('waitingRoom', { roomId: uuidv4(), user: req.session.user });
 });
 
 app.get('/logout', (req, res) => {
@@ -260,30 +229,12 @@ app.get('/logout', (req, res) => {
     });
 });
 
-
-app.get('/api/players', (req, res) => {
-
-    const players = [
-        { name: 'Player 1' },
-        { name: 'Player 2' },
-        { name: 'Player 3' },
-        { name: 'Player 4' }
-    ];
-    res.json(players);
-});
-
-app.get('/game', (req, res) => {
-    if (!req.session.user) {
-        return res.redirect('/login');
-    }
-    const { roomId, username } = req.query;
+app.get('/game', checkAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'game.html'));
 });
 
 server.listen(3000, () => {
-    console.log('Server is running on http://localhost:3000');
+    console.log('Server is running on port http://localhost:3000/');
 });
 
 module.exports = { app, server };
-
-

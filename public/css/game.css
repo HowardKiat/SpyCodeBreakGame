@@ -5,28 +5,26 @@
 }
 
 body {
-    background: #1f1a25;
+    background: #4862a1;
+}
+
+/* Default styling for larger screens */
+.board,
+.container {
+    position: absolute;
+    top: 5%;
+    left: 15%;
+    width: 90vh;
+    height: 90vh;
 }
 
 .board {
-    position: absolute;
-    transform: translate(-15%, 0);
-    top: 5%;
-    left: 15%;
-    height: 90vh;
-    width: 90vh;
     background: url("../images/board.png");
     background-size: contain;
     z-index: -1;
 }
 
 .container {
-    position: absolute;
-    transform: translate(-15%, 0);
-    top: 5%;
-    left: 15%;
-    width: 90vh;
-    height: 90vh;
     z-index: 1;
 }
 
@@ -48,49 +46,7 @@ body {
     position: relative;
 }
 
-.draw-border::before,
-.draw-border::after {
-    border: 0 solid transparent;
-    box-sizing: border-box;
-    content: "";
-    pointer-events: none;
-    position: absolute;
-    width: 0;
-    height: 0;
-    bottom: 0;
-    right: 0;
-}
-
-.draw-border::before {
-    border-bottom-width: 4px;
-    border-left-width: 4px;
-}
-
-.draw-border::after {
-    border-top-width: 4px;
-    border-right-width: 4px;
-}
-
-.draw-border:hover {
-    color: #ffe593;
-}
-
-.draw-border:hover::before,
-.draw-border:hover::after {
-    border-color: #ffe593;
-    transition: border-color 0s, width 0.25s, height 0.25s;
-    width: 100%;
-    height: 100%;
-}
-
-.draw-border:hover::before {
-    transition-delay: 0s, 0s, 0.25s;
-}
-
-.draw-border:hover::after {
-    transition-delay: 0s, 0.25s, 0s;
-}
-
+/* Buttons and interactive elements */
 .btn {
     background: none;
     border: none;
@@ -134,23 +90,24 @@ body {
     font-size: 1rem;
 }
 
-#players-box {
+#players-box,
+#current-player {
     position: absolute;
+    font-family: "Roboto Slab", sans-serif;
+    color: azure;
+    text-align: center;
+}
+
+#players-box {
     top: 25%;
     right: 19%;
-    color: azure;
     font-size: 1.6rem;
-    font-family: "Roboto Slab", sans-serif;
 }
 
 #current-player {
-    position: absolute;
     bottom: 35%;
     right: 25%;
-    color: azure;
     font-size: 1.4rem;
-    font-family: "Roboto Slab", sans-serif;
-    text-align: center;
 }
 
 #restart-btn {
@@ -166,4 +123,96 @@ body {
 
 #players-table td {
     padding-right: 20px;
+}
+
+/* Responsive Styling */
+@media (max-width: 1200px) {
+
+    .board,
+    .container {
+        width: 80vh;
+        height: 80vh;
+        top: 5%;
+        left: 10%;
+    }
+
+    .form-input,
+    #players-box,
+    #current-player {
+        font-size: 1.2rem;
+    }
+
+    #roll-button,
+    #restart-btn {
+        right: 10%;
+        bottom: 10%;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .board,
+    .container {
+        width: 70vh;
+        height: 70vh;
+        top: 10%;
+        left: 5%;
+    }
+
+    .dice {
+        right: 5%;
+        bottom: 5%;
+    }
+
+    .form-input {
+        width: 30%;
+        right: 10%;
+        top: 12%;
+        font-size: 1rem;
+    }
+
+    #players-box,
+    #current-player {
+        font-size: 1.2rem;
+        right: 10%;
+    }
+
+    #roll-button,
+    #restart-btn {
+        right: 5%;
+        bottom: 10%;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .board,
+    .container {
+        width: 60vh;
+        height: 60vh;
+        top: 15%;
+        left: 5%;
+    }
+
+    .dice img {
+        width: 50%;
+    }
+
+    .form-input {
+        width: 80%;
+        font-size: 1rem;
+        right: 10%;
+        top: 15%;
+    }
+
+    #players-box,
+    #current-player {
+        font-size: 1rem;
+        right: 5%;
+    }
+
+    .btn {
+        font-size: 1rem;
+        padding: 0.5em 1em;
+    }
 }
