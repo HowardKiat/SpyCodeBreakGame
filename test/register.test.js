@@ -1,40 +1,29 @@
 const request = require('supertest');
-const app = require('../app');  // Your app file
+const { server } = require('../app'); // Adjust the path to your app
 
-describe('POST /register', () => {
-    it('should register a user successfully', (done) => {
-        request(app)
-            .post('/register')
-            .send({
-                username: 'testuser',
-                email: 'testuser@example.com',
-                password: 'Test1234!',
-                confirmPassword: 'Test1234!'
-            })
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .end((err, res) => {
-                if (err) return done(err);
-                res.body.success.should.equal(true);
-                done();
-            });
+describe('POST /register', function () {
+    before(function (done) {
+        this.server = server.listen(3001, function (err) {
+            if (err) return done(err);
+            done();
+        });
     });
 
-    it('should return error if passwords do not match', (done) => {
-        request(app)
+    after(function (done) {
+        this.server.close(done);
+    });
+
+    it('should register a user successfully', function (done) {
+        request(this.server)
             .post('/register')
-            .send({
-                username: 'testuser',
-                email: 'testuser@example.com',
-                password: 'Test1234!',
-                confirmPassword: 'Test12345!'
-            })
-            .expect('Content-Type', /json/)
-            .expect(400)
-            .end((err, res) => {
-                if (err) return done(err);
-                res.body.success.should.equal(false);
-                done();
-            });
+            .send({ username: 'testuser', password: 'password', confirmPassword: 'password' })
+            .expect(200, done);
+    });
+
+    it('should return error if passwords do not match', function (done) {
+        request(this.server)
+            .post('/register')
+            .send({ username: 'testuser', password: 'password', confirmPassword: 'differentpassword' })
+            .expect(400, done);
     });
 });

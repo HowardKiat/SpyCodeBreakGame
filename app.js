@@ -10,12 +10,16 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const jsQR = require('jsqr');
 const { createCanvas, loadImage } = require('canvas');
+const bodyParser = require('body-parser');
 
 const db = require('./db');
 
 const app = express();
 const server = http.createServer(app);
 const upload = multer({ dest: 'uploads/' });
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Socket setup
 const io = socket(server);
