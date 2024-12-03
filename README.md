@@ -1,5 +1,3 @@
-# SpyCodeBreakGame
-
 ```markdown
 # SpyCodeBreakGame
 
