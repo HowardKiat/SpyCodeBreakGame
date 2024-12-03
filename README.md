@@ -1,4 +1,3 @@
-```markdown
 # SpyCodeBreakGame
 
 Welcome to the SpyCodeBreakGame, a classic Snake and Ladder game built with Node.js and Express!
