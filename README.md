@@ -56,7 +56,7 @@ To get started with SpyCodeBreakGame, follow these steps:
 
 ## Contributing
 
-We welcome contributions to improve SpyCodeBreakGame! To contribute, please follow these steps:
+Welcoming contributions to improve SpyCodeBreakGame! To contribute, please follow these steps:
 
 1. Fork the repository.
 2. Create a new branch (`git checkout -b feature-branch`).
@@ -70,8 +70,6 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 ---
 
-Enjoy playing SpyCodeBreakGame! If you have any questions or feedback, feel free to open an issue or contact us.
+Enjoy playing SpyCodeBreakGame! If you have any questions or feedback, feel free to open an issue or contact me.
 
 ```
-
-Feel free to customize this README to better fit your project's specifics. If you need any more help, just let me know!
